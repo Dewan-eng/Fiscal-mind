@@ -88,16 +88,18 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
     }
 });
 
-// 4. ADD TRANSACTION (Secure: Tag with YOUR ID)
+// 4. ADD TRANSACTION (Updated with Category)
 app.post('/api/transactions', authenticateToken, async (req, res) => {
-    const { description, amount, type } = req.body;
+    // We now extract 'category' from the request
+    const { description, amount, type, category } = req.body;
     try {
         const newTx = await pool.query(
-            'INSERT INTO transactions (description, amount, type, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [description, amount, type, req.user.id]
+            'INSERT INTO transactions (description, amount, type, user_id, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [description, amount, type, req.user.id, category]
         );
         res.json(newTx.rows[0]);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: "Server Error" });
     }
 });
