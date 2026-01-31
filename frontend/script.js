@@ -1,14 +1,28 @@
-const API_URL = 'https://fiscal-mind.onrender.com/api';
+// --- CONFIGURATION ---
+// IMPORTANT: Keep your Live URL here!
+const API_URL = 'https://fiscal-mind.onrender.com/api'; 
 let transactions = [];
 let chartInstance = null;
 
-// --- AUTH STATE ---
-const token = localStorage.getItem('token');
-if(token) {
-    showDashboard();
-}
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    if(token) {
+        showDashboard();
+    }
+    
+    // Attach Listeners Safely
+    const regForm = document.getElementById('registerForm');
+    if(regForm) regForm.addEventListener('submit', handleRegister);
 
-// --- TOGGLE LOGIN / REGISTER ---
+    const logForm = document.getElementById('loginForm');
+    if(logForm) logForm.addEventListener('submit', handleLogin);
+
+    const addTxForm = document.getElementById('addForm');
+    if(addTxForm) addTxForm.addEventListener('submit', handleAddTransaction);
+});
+
+// --- AUTH LOGIC ---
 let isLoginView = true;
 window.toggleAuth = function() {
     isLoginView = !isLoginView;
@@ -27,69 +41,59 @@ window.toggleAuth = function() {
     }
 }
 
-// --- AUTHENTICATION HANDLERS ---
-
-// 1. REGISTER
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
+async function handleRegister(e) {
     e.preventDefault();
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPass').value;
-
     try {
         const res = await fetch(`${API_URL}/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        
         if(res.ok) {
             alert("Account created! Please login.");
-            toggleAuth(); // Switch back to login
+            toggleAuth();
         } else {
             const data = await res.json();
             alert(data.error);
         }
     } catch (err) { alert("Server Error"); }
-});
+}
 
-// 2. LOGIN
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPass').value;
-
     try {
         const res = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-
         const data = await res.json();
-        
         if(res.ok) {
-            localStorage.setItem('token', data.token); // SAVE THE TOKEN
+            localStorage.setItem('token', data.token);
             showDashboard();
         } else {
             alert(data.error);
         }
     } catch (err) { alert("Server Error"); }
-});
+}
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
+window.logout = function() {
     localStorage.removeItem('token');
-    location.reload(); // Refresh page to clear state
-});
-
-// --- DASHBOARD LOGIC (Protected) ---
+    location.reload();
+}
 
 function showDashboard() {
-    document.getElementById('login-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.remove('hidden');
+    const loginView = document.getElementById('login-view');
+    const dashView = document.getElementById('dashboard-view');
+    if(loginView) loginView.classList.add('hidden');
+    if(dashView) dashView.classList.remove('hidden');
     fetchTransactions();
 }
 
-// Helper: Get Token for headers
 function getAuthHeader() {
     return { 
         'Content-Type': 'application/json',
@@ -97,27 +101,22 @@ function getAuthHeader() {
     };
 }
 
+// --- DATA LOGIC ---
 async function fetchTransactions() {
     try {
         const res = await fetch(`${API_URL}/transactions`, { headers: getAuthHeader() });
-        if(res.status === 403 || res.status === 401) {
-            localStorage.removeItem('token');
-            location.reload();
-            return;
-        }
-        
+        if(res.status === 403 || res.status === 401) return logout();
         const data = await res.json();
         transactions = data;
         updateUI();
     } catch (err) { console.error(err); }
 }
 
-document.getElementById('addForm').addEventListener('submit', async (e) => {
+async function handleAddTransaction(e) {
     e.preventDefault();
     const desc = document.getElementById('descInput').value;
     const amount = Number(document.getElementById('amountInput').value);
     const type = document.getElementById('typeInput').value;
-
     try {
         const res = await fetch(`${API_URL}/transactions`, {
             method: 'POST',
@@ -129,9 +128,9 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
         document.getElementById('addForm').reset();
         updateUI();
     } catch (err) { alert("Error saving"); }
-});
+}
 
-async function deleteTx(id) {
+window.deleteTx = async function(id) {
     if(!confirm("Delete this?")) return;
     await fetch(`${API_URL}/transactions/${id}`, { 
         method: 'DELETE',
@@ -141,243 +140,62 @@ async function deleteTx(id) {
     updateUI();
 }
 
-// --- CORE FUNCTIONS (Visuals & Logic) ---
+// --- V2.0 FEATURES (Tabs, History, Budgets) ---
 
-function renderList() {
-    const list = document.getElementById('txList');
-    list.innerHTML = '';
-
-    transactions.forEach(tx => {
-        const li = document.createElement('li');
-        li.className = 'tx-item';
-        
-        const amountClass = tx.type === 'income' ? 'text-success' : 'text-danger';
-        const sign = tx.type === 'income' ? '+' : '-';
-        const dateStr = new Date(tx.date || tx.created_at).toLocaleDateString();
-
-        li.innerHTML = `
-            <div>
-                <div class="tx-desc">${tx.description}</div>
-                <span class="tx-date">${dateStr}</span>
-            </div>
-            <div>
-                <span class="${amountClass}" style="font-weight:bold; margin-right:15px;">
-                    ${sign}₹${Number(tx.amount).toLocaleString('en-IN')}
-                </span>
-                <button onclick="deleteTx(${tx.id})" style="color:#cbd5e1; background:none; border:none; cursor:pointer;">&times;</button>
-            </div>
-        `;
-        list.appendChild(li);
-    });
-}
-
-function updateChart() {
-    const ctx = document.getElementById('myChart');
-    
-    const income = transactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-        
-    const expense = transactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-        
-    const savings = income - expense;
-
-    if (chartInstance) chartInstance.destroy();
-
-    chartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Expenses', 'Savings'],
-            datasets: [{
-                data: [expense, savings > 0 ? savings : 0],
-                backgroundColor: ['#ef4444', '#10b981'],
-                borderWidth: 0,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return ' ' + context.label + ': ₹' + context.raw.toLocaleString('en-IN');
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// --- NEW "SMART" AI LOGIC ---
-function generateAI() {
-    // 1. Calculate Totals
-    const expense = transactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-        
-    const income = transactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-
-    const balance = income - expense;
-    const savingsRate = income > 0 ? ((income - expense) / income) * 100 : 0;
-
-    // 2. Identify "Bad Habits" (Simple Keyword Matching)
-    const badHabits = transactions
-        .filter(t => t.type === 'expense')
-        .filter(t => {
-            const desc = t.description.toLowerCase();
-            return desc.includes('coffee') || desc.includes('netflix') || desc.includes('uber') || desc.includes('food');
-        });
-    
-    const habitTotal = badHabits.reduce((sum, t) => sum + Number(t.amount), 0);
-
-    // 3. Generate Insight & Suggestion
-    let title = "";
-    let message = "";
-
-    if (income === 0 && expense === 0) {
-        title = "⏳ Awaiting Data";
-        message = "Start by adding your salary or an expense to unlock financial insights.";
-    } 
-    else if (income === 0 && expense > 0) {
-        title = "🚨 Critical Alert";
-        message = "You have expenses but **no recorded income**. Immediate attention required.";
-    } 
-    else if (expense > income) {
-        title = "⚠️ Deficit Warning";
-        message = `You are spending <strong>₹${Math.abs(balance).toLocaleString()}</strong> more than you earn. Suggestion: Cut discretionary spending immediately.`;
-    } 
-    else if (savingsRate < 20) {
-        title = "📉 Low Savings Rate";
-        message = `You are saving only <strong>${Math.round(savingsRate)}%</strong> of your income. Financial experts recommend at least 20%.`;
-        if (habitTotal > 0) {
-            message += ` <br><br>💡 <strong>Quick Fix:</strong> You spent ₹${habitTotal} on lifestyle (Coffee/Food) recently. Reducing this could boost savings.`;
-        }
-    } 
-    else if (savingsRate >= 20 && savingsRate < 50) {
-        title = "✅ Healthy Balance";
-        message = "You are following the <strong>50/30/20 rule</strong> correctly. Your finances are stable. Suggestion: Build an emergency fund.";
-    } 
-    else {
-        title = "🚀 Wealth Builder Mode";
-        message = `Impressive! You are saving <strong>${Math.round(savingsRate)}%</strong> of your income. Suggestion: Consider high-yield investments (SIPs or Stocks).`;
-    }
-
-    // 4. Update the UI
-    const aiBox = document.getElementById('aiText');
-    aiBox.innerHTML = `
-        <strong style="font-size: 1.1rem; display:block; margin-bottom:8px;">${title}</strong>
-        <span style="opacity: 0.9;">${message}</span>
-    `;
-}
-
-window.downloadPDF = function() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    doc.setFontSize(20);
-    doc.text("FiscalMind Report", 10, 20);
-    
-    doc.setFontSize(12);
-    let y = 40;
-    
-    transactions.forEach(tx => {
-        const dateStr = new Date(tx.date || tx.created_at).toLocaleDateString();
-        // Used 'Rs.' for PDF safety
-        const line = `${dateStr} | ${tx.description} | ${tx.type === 'income' ? '+' : '-'} Rs. ${tx.amount}`;
-        doc.text(line, 10, y);
-        y += 10;
-    });
-    
-    doc.save("FiscalMind_Report.pdf");
-}
-
-function updateUI() {
-    renderList();
-    updateChart();
-    generateAI();
-}
-// --- V2.0 FEATURES ---
-
-// 1. TAB SWITCHING
 window.switchTab = function(tabName) {
-    // Hide all contents
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    // Remove active class from buttons
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    // Show selected
-    document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-    // Highlight button (simple logic for now)
+    const target = document.getElementById(`tab-${tabName}`);
+    if(target) target.classList.remove('hidden');
+    
+    // Simple active button logic
     const buttons = document.querySelectorAll('.tab-btn');
-    if(tabName === 'dashboard') buttons[0].classList.add('active');
-    if(tabName === 'history') {
-        buttons[1].classList.add('active');
-        renderHistory(); // Refresh history when opened
-    }
-    if(tabName === 'budget') {
-        buttons[2].classList.add('active');
-        updateBudgets(); // Refresh budgets when opened
+    if(buttons.length > 0) {
+        if(tabName === 'dashboard') buttons[0].classList.add('active');
+        if(tabName === 'history') {
+            buttons[1].classList.add('active');
+            renderHistory();
+        }
+        if(tabName === 'budget') {
+            buttons[2].classList.add('active');
+            updateBudgets();
+        }
     }
 }
 
-// 2. TIME TRAVEL (HISTORY)
 window.renderHistory = function() {
     const list = document.getElementById('historyList');
     const month = document.getElementById('historyMonth').value;
     const year = document.getElementById('historyYear').value;
+    if(!list) return;
     
     list.innerHTML = '';
-
-    // Filter Logic
     const filtered = transactions.filter(tx => {
         const d = new Date(tx.date || tx.created_at);
-        const txMonth = d.getMonth(); // 0-11
-        const txYear = d.getFullYear();
-        
-        if (month === 'all') return txYear == year;
-        return txMonth == month && txYear == year;
+        return (month === 'all' || d.getMonth() == month) && d.getFullYear() == year;
     });
 
     if (filtered.length === 0) {
-        list.innerHTML = '<p style="text-align:center; padding:20px; color:#94a3b8;">No records found for this period.</p>';
+        list.innerHTML = '<p style="padding:20px; color:#94a3b8;">No records found.</p>';
         document.getElementById('historyStats').innerText = '';
         return;
     }
 
-    // Reuse the rendering logic (simplified)
-    let totalSpent = 0;
+    let total = 0;
     filtered.forEach(tx => {
-        if(tx.type === 'expense') totalSpent += Number(tx.amount);
-        
+        if(tx.type === 'expense') total += Number(tx.amount);
         const li = document.createElement('li');
         li.className = 'tx-item';
-        const amountClass = tx.type === 'income' ? 'text-success' : 'text-danger';
+        const color = tx.type === 'income' ? 'text-success' : 'text-danger';
         const sign = tx.type === 'income' ? '+' : '-';
-        
-        li.innerHTML = `
-            <div>
-                <div class="tx-desc">${tx.description}</div>
-                <span class="tx-date">${new Date(tx.date || tx.created_at).toLocaleDateString()}</span>
-            </div>
-            <span class="${amountClass}" style="font-weight:bold;">${sign}₹${Number(tx.amount).toLocaleString('en-IN')}</span>
-        `;
+        li.innerHTML = `<div><div class="tx-desc">${tx.description}</div><span class="tx-date">${new Date(tx.date||tx.created_at).toLocaleDateString()}</span></div><span class="${color}" style="font-weight:bold;">${sign}₹${Number(tx.amount).toLocaleString('en-IN')}</span>`;
         list.appendChild(li);
     });
-
-    document.getElementById('historyStats').innerText = `Total Expenses in Period: ₹${totalSpent.toLocaleString('en-IN')}`;
+    document.getElementById('historyStats').innerText = `Total Expenses: ₹${total.toLocaleString('en-IN')}`;
 }
 
-// 3. BUDGET BUCKETS (GAMIFICATION)
 window.updateBudgets = function() {
-    // We categorize by "Keywords" since we don't have a category dropdown yet
     const budgets = [
         { id: 'food', keywords: ['food', 'burger', 'coffee', 'pizza', 'dining'], limit: 5000 },
         { id: 'transport', keywords: ['uber', 'fuel', 'taxi', 'bus', 'train'], limit: 3000 },
@@ -385,39 +203,83 @@ window.updateBudgets = function() {
     ];
 
     budgets.forEach(bucket => {
-        // Calculate spend for this bucket
         const spent = transactions
-            .filter(t => t.type === 'expense')
-            .filter(t => {
-                const desc = t.description.toLowerCase();
-                return bucket.keywords.some(k => desc.includes(k));
-            })
+            .filter(t => t.type === 'expense' && bucket.keywords.some(k => t.description.toLowerCase().includes(k)))
             .reduce((sum, t) => sum + Number(t.amount), 0);
 
-        // Update UI
-        const percentage = Math.min((spent / bucket.limit) * 100, 100);
         const bar = document.getElementById(`bar-${bucket.id}`);
         const status = document.getElementById(`status-${bucket.id}`);
         const card = document.getElementById(`bucket-${bucket.id}`);
-
-        // Set Width
-        bar.style.width = `${percentage}%`;
-        status.innerText = `₹${spent.toLocaleString()} / ₹${bucket.limit.toLocaleString()}`;
-
-        // Gamification Colors & Shake
-        card.classList.remove('shake-alert'); // Reset shake
         
-        if (percentage < 50) {
-            bar.style.backgroundColor = '#10b981'; // Green
-        } else if (percentage < 90) {
-            bar.style.backgroundColor = '#facc15'; // Yellow (Warning)
-        } else {
-            bar.style.backgroundColor = '#ef4444'; // Red (Danger)
-        }
+        if(!bar) return; // Safety check
 
+        const pct = Math.min((spent / bucket.limit) * 100, 100);
+        bar.style.width = `${pct}%`;
+        status.innerText = `₹${spent.toLocaleString()} / ₹${bucket.limit.toLocaleString()}`;
+        
+        card.classList.remove('shake-alert');
+        bar.style.backgroundColor = pct < 50 ? '#10b981' : pct < 90 ? '#facc15' : '#ef4444';
+        
         if (spent > bucket.limit) {
-            card.classList.add('shake-alert'); // Trigger Shake Animation
+            card.classList.add('shake-alert');
             status.innerHTML += " <b style='color:red'>(OVER LIMIT!)</b>";
         }
     });
+}
+
+// --- VISUALS ---
+function renderList() {
+    const list = document.getElementById('txList');
+    if(!list) return;
+    list.innerHTML = '';
+    transactions.forEach(tx => {
+        const li = document.createElement('li');
+        li.className = 'tx-item';
+        const c = tx.type === 'income' ? 'text-success' : 'text-danger';
+        const s = tx.type === 'income' ? '+' : '-';
+        li.innerHTML = `<div><div class="tx-desc">${tx.description}</div><span class="tx-date">${new Date(tx.date||tx.created_at).toLocaleDateString()}</span></div><div><span class="${c}" style="font-weight:bold;margin-right:15px;">${s}₹${Number(tx.amount).toLocaleString('en-IN')}</span><button onclick="deleteTx(${tx.id})" style="color:#cbd5e1;background:none;border:none;cursor:pointer;">&times;</button></div>`;
+        list.appendChild(li);
+    });
+}
+
+function updateChart() {
+    const ctx = document.getElementById('myChart');
+    if(!ctx) return;
+    const inc = transactions.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+    const exp = transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount),0);
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: ['Expenses','Savings'], datasets: [{ data: [exp, (inc-exp)>0?inc-exp:0], backgroundColor: ['#ef4444','#10b981'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+}
+
+function generateAI() {
+    const exp = transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount),0);
+    const inc = transactions.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+    const bal = inc - exp;
+    
+    let title="", msg="";
+    if(inc===0 && exp===0) { title="⏳ Awaiting Data"; msg="Start adding entries."; }
+    else if(inc===0) { title="🚨 Critical Alert"; msg="Expenses with no income!"; }
+    else if(exp > inc) { title="⚠️ Deficit"; msg=`You overspent by ₹${Math.abs(bal)}.`; }
+    else { title="✅ Healthy"; msg="Finances are stable."; }
+
+    const aiBox = document.getElementById('aiText');
+    if(aiBox) aiBox.innerHTML = `<strong style="font-size:1.1rem;display:block;margin-bottom:8px;">${title}</strong><span style="opacity:0.9;">${msg}</span>`;
+}
+
+function updateUI() { renderList(); updateChart(); generateAI(); }
+
+window.downloadPDF = function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("FiscalMind Report", 10, 20);
+    let y = 40;
+    transactions.forEach(tx => {
+        doc.text(`${new Date(tx.date||tx.created_at).toLocaleDateString()} | ${tx.description} | ${tx.amount}`, 10, y);
+        y += 10;
+    });
+    doc.save("Report.pdf");
 }

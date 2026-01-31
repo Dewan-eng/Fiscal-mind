@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FiscalMind | Professional</title>
+    <title>FiscalMind v2.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -39,6 +39,7 @@
         <div class="nav-header">
             <div class="logo-text">FiscalMind <span style="font-size:0.8rem; color:var(--secondary);">v2.0</span></div>
             <div>
+                <button onclick="downloadPDF()" class="btn" style="background: white; border: 1px solid #e2e8f0; margin-right: 10px;">Download PDF</button>
                 <button onclick="logout()" class="btn" style="color: var(--danger);">Logout</button>
             </div>
         </div>
@@ -95,7 +96,7 @@
                             <option value="0">January</option>
                             <option value="1">February</option>
                             <option value="2">March</option>
-                            </select>
+                        </select>
                         <select id="historyYear" class="login-input" style="width:auto; display:inline-block; padding:8px;">
                             <option value="2025">2025</option>
                             <option value="2026" selected>2026</option>
@@ -111,35 +112,18 @@
         <div id="tab-budget" class="tab-content hidden">
             <div class="dashboard-grid">
                 <div class="card budget-card" id="bucket-food">
-                    <div class="budget-header">
-                        <span>🍔 Food & Dining</span>
-                        <span class="budget-limit">Limit: ₹5,000</span>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" id="bar-food" style="width: 0%"></div>
-                    </div>
+                    <div class="budget-header"><span>🍔 Food & Dining</span><span class="budget-limit">Limit: ₹5,000</span></div>
+                    <div class="progress-container"><div class="progress-bar" id="bar-food" style="width: 0%"></div></div>
                     <p class="budget-status" id="status-food">₹0 spent</p>
                 </div>
-
                 <div class="card budget-card" id="bucket-transport">
-                    <div class="budget-header">
-                        <span>🚕 Transport (Uber/Fuel)</span>
-                        <span class="budget-limit">Limit: ₹3,000</span>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" id="bar-transport" style="width: 0%"></div>
-                    </div>
+                    <div class="budget-header"><span>🚕 Transport</span><span class="budget-limit">Limit: ₹3,000</span></div>
+                    <div class="progress-container"><div class="progress-bar" id="bar-transport" style="width: 0%"></div></div>
                     <p class="budget-status" id="status-transport">₹0 spent</p>
                 </div>
-
                 <div class="card budget-card" id="bucket-fun">
-                    <div class="budget-header">
-                        <span>🎬 Fun & Subscriptions</span>
-                        <span class="budget-limit">Limit: ₹2,000</span>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" id="bar-fun" style="width: 0%"></div>
-                    </div>
+                    <div class="budget-header"><span>🎬 Fun & Subscriptions</span><span class="budget-limit">Limit: ₹2,000</span></div>
+                    <div class="progress-container"><div class="progress-bar" id="bar-fun" style="width: 0%"></div></div>
                     <p class="budget-status" id="status-fun">₹0 spent</p>
                 </div>
             </div>
