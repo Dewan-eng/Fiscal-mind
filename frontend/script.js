@@ -1,0 +1,306 @@
+const API_URL = 'http://localhost:3000/api';
+let transactions = [];
+let chartInstance = null;
+
+// --- AUTH STATE ---
+const token = localStorage.getItem('token');
+if(token) {
+    showDashboard();
+}
+
+// --- TOGGLE LOGIN / REGISTER ---
+let isLoginView = true;
+window.toggleAuth = function() {
+    isLoginView = !isLoginView;
+    const loginForm = document.getElementById('loginForm');
+    const regForm = document.getElementById('registerForm');
+    const text = document.getElementById('authToggleText');
+
+    if(isLoginView) {
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        text.innerText = "Need an account? Register";
+    } else {
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        text.innerText = "Have an account? Login";
+    }
+}
+
+// --- AUTHENTICATION HANDLERS ---
+
+// 1. REGISTER
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPass').value;
+
+    try {
+        const res = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        if(res.ok) {
+            alert("Account created! Please login.");
+            toggleAuth(); // Switch back to login
+        } else {
+            const data = await res.json();
+            alert(data.error);
+        }
+    } catch (err) { alert("Server Error"); }
+});
+
+// 2. LOGIN
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPass').value;
+
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        
+        if(res.ok) {
+            localStorage.setItem('token', data.token); // SAVE THE TOKEN
+            showDashboard();
+        } else {
+            alert(data.error);
+        }
+    } catch (err) { alert("Server Error"); }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    location.reload(); // Refresh page to clear state
+});
+
+// --- DASHBOARD LOGIC (Protected) ---
+
+function showDashboard() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('dashboard-view').classList.remove('hidden');
+    fetchTransactions();
+}
+
+// Helper: Get Token for headers
+function getAuthHeader() {
+    return { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+    };
+}
+
+async function fetchTransactions() {
+    try {
+        const res = await fetch(`${API_URL}/transactions`, { headers: getAuthHeader() });
+        if(res.status === 403 || res.status === 401) {
+            localStorage.removeItem('token');
+            location.reload();
+            return;
+        }
+        
+        const data = await res.json();
+        transactions = data;
+        updateUI();
+    } catch (err) { console.error(err); }
+}
+
+document.getElementById('addForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const desc = document.getElementById('descInput').value;
+    const amount = Number(document.getElementById('amountInput').value);
+    const type = document.getElementById('typeInput').value;
+
+    try {
+        const res = await fetch(`${API_URL}/transactions`, {
+            method: 'POST',
+            headers: getAuthHeader(),
+            body: JSON.stringify({ description: desc, amount, type })
+        });
+        const savedTx = await res.json();
+        transactions.unshift(savedTx);
+        document.getElementById('addForm').reset();
+        updateUI();
+    } catch (err) { alert("Error saving"); }
+});
+
+async function deleteTx(id) {
+    if(!confirm("Delete this?")) return;
+    await fetch(`${API_URL}/transactions/${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeader()
+    });
+    transactions = transactions.filter(t => t.id !== id);
+    updateUI();
+}
+
+// --- CORE FUNCTIONS (Visuals & Logic) ---
+
+function renderList() {
+    const list = document.getElementById('txList');
+    list.innerHTML = '';
+
+    transactions.forEach(tx => {
+        const li = document.createElement('li');
+        li.className = 'tx-item';
+        
+        const amountClass = tx.type === 'income' ? 'text-success' : 'text-danger';
+        const sign = tx.type === 'income' ? '+' : '-';
+        const dateStr = new Date(tx.date || tx.created_at).toLocaleDateString();
+
+        li.innerHTML = `
+            <div>
+                <div class="tx-desc">${tx.description}</div>
+                <span class="tx-date">${dateStr}</span>
+            </div>
+            <div>
+                <span class="${amountClass}" style="font-weight:bold; margin-right:15px;">
+                    ${sign}₹${Number(tx.amount).toLocaleString('en-IN')}
+                </span>
+                <button onclick="deleteTx(${tx.id})" style="color:#cbd5e1; background:none; border:none; cursor:pointer;">&times;</button>
+            </div>
+        `;
+        list.appendChild(li);
+    });
+}
+
+function updateChart() {
+    const ctx = document.getElementById('myChart');
+    
+    const income = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+        
+    const expense = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+        
+    const savings = income - expense;
+
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Expenses', 'Savings'],
+            datasets: [{
+                data: [expense, savings > 0 ? savings : 0],
+                backgroundColor: ['#ef4444', '#10b981'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.label + ': ₹' + context.raw.toLocaleString('en-IN');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// --- NEW "SMART" AI LOGIC ---
+function generateAI() {
+    // 1. Calculate Totals
+    const expense = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+        
+    const income = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const balance = income - expense;
+    const savingsRate = income > 0 ? ((income - expense) / income) * 100 : 0;
+
+    // 2. Identify "Bad Habits" (Simple Keyword Matching)
+    const badHabits = transactions
+        .filter(t => t.type === 'expense')
+        .filter(t => {
+            const desc = t.description.toLowerCase();
+            return desc.includes('coffee') || desc.includes('netflix') || desc.includes('uber') || desc.includes('food');
+        });
+    
+    const habitTotal = badHabits.reduce((sum, t) => sum + Number(t.amount), 0);
+
+    // 3. Generate Insight & Suggestion
+    let title = "";
+    let message = "";
+
+    if (income === 0 && expense === 0) {
+        title = "⏳ Awaiting Data";
+        message = "Start by adding your salary or an expense to unlock financial insights.";
+    } 
+    else if (income === 0 && expense > 0) {
+        title = "🚨 Critical Alert";
+        message = "You have expenses but **no recorded income**. Immediate attention required.";
+    } 
+    else if (expense > income) {
+        title = "⚠️ Deficit Warning";
+        message = `You are spending <strong>₹${Math.abs(balance).toLocaleString()}</strong> more than you earn. Suggestion: Cut discretionary spending immediately.`;
+    } 
+    else if (savingsRate < 20) {
+        title = "📉 Low Savings Rate";
+        message = `You are saving only <strong>${Math.round(savingsRate)}%</strong> of your income. Financial experts recommend at least 20%.`;
+        if (habitTotal > 0) {
+            message += ` <br><br>💡 <strong>Quick Fix:</strong> You spent ₹${habitTotal} on lifestyle (Coffee/Food) recently. Reducing this could boost savings.`;
+        }
+    } 
+    else if (savingsRate >= 20 && savingsRate < 50) {
+        title = "✅ Healthy Balance";
+        message = "You are following the <strong>50/30/20 rule</strong> correctly. Your finances are stable. Suggestion: Build an emergency fund.";
+    } 
+    else {
+        title = "🚀 Wealth Builder Mode";
+        message = `Impressive! You are saving <strong>${Math.round(savingsRate)}%</strong> of your income. Suggestion: Consider high-yield investments (SIPs or Stocks).`;
+    }
+
+    // 4. Update the UI
+    const aiBox = document.getElementById('aiText');
+    aiBox.innerHTML = `
+        <strong style="font-size: 1.1rem; display:block; margin-bottom:8px;">${title}</strong>
+        <span style="opacity: 0.9;">${message}</span>
+    `;
+}
+
+window.downloadPDF = function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.text("FiscalMind Report", 10, 20);
+    
+    doc.setFontSize(12);
+    let y = 40;
+    
+    transactions.forEach(tx => {
+        const dateStr = new Date(tx.date || tx.created_at).toLocaleDateString();
+        // Used 'Rs.' for PDF safety
+        const line = `${dateStr} | ${tx.description} | ${tx.type === 'income' ? '+' : '-'} Rs. ${tx.amount}`;
+        doc.text(line, 10, y);
+        y += 10;
+    });
+    
+    doc.save("FiscalMind_Report.pdf");
+}
+
+function updateUI() {
+    renderList();
+    updateChart();
+    generateAI();
+}
