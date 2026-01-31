@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://fiscal-mind.onrender.com';
 let transactions = [];
 let chartInstance = null;
 
