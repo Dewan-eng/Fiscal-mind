@@ -340,11 +340,105 @@ function updateUI() { renderList(); updateChart(); generateAI(); }
 window.downloadPDF = function() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.text("FiscalMind Report", 10, 20);
-    let y = 40;
-    transactions.forEach(tx => {
-        doc.text(`${new Date(tx.date||tx.created_at).toLocaleDateString()} | ${tx.description} | ${tx.amount}`, 10, y);
-        y += 10;
+
+    // 1. BRANDED HEADER
+    doc.setFillColor(79, 70, 229); // FiscalMind Blue
+    doc.rect(0, 0, 210, 40, 'F'); // Blue top bar
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("FiscalMind", 20, 20);
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Financial Health Report", 20, 30);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 150, 25);
+
+    // 2. CHART & SUMMARY SECTION
+    let yPos = 50;
+
+    // A. Add the Chart Image
+    if (chartInstance) {
+        // Convert chart to image
+        const chartImg = chartInstance.toBase64Image();
+        doc.addImage(chartImg, 'PNG', 15, yPos, 70, 70); 
+    }
+
+    // B. Add Summary Text (Right of Chart)
+    const inc = transactions.filter(t => t.type === 'income').reduce((s,t) => s+Number(t.amount),0);
+    const exp = transactions.filter(t => t.type === 'expense').reduce((s,t) => s+Number(t.amount),0);
+    const savings = inc - exp;
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.text("Executive Summary", 100, yPos + 10);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100); // Grey
+    doc.text("Total Income:", 100, yPos + 25);
+    doc.text("Total Expenses:", 100, yPos + 35);
+    doc.text("Net Savings:", 100, yPos + 45);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(16, 185, 129); // Green
+    doc.text(`Rs. ${inc.toLocaleString()}`, 150, yPos + 25);
+    
+    doc.setTextColor(239, 68, 68); // Red
+    doc.text(`Rs. ${exp.toLocaleString()}`, 150, yPos + 35);
+    
+    doc.setTextColor(79, 70, 229); // Blue
+    doc.text(`Rs. ${savings.toLocaleString()}`, 150, yPos + 45);
+
+    // 3. TRANSACTION TABLE
+    yPos = 130; // Move down below chart
+    
+    // Table Header
+    doc.setFillColor(240, 240, 240); // Light Grey
+    doc.rect(15, yPos, 180, 10, 'F');
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text("DATE", 20, yPos + 7);
+    doc.text("DESCRIPTION", 60, yPos + 7);
+    doc.text("CATEGORY", 130, yPos + 7);
+    doc.text("AMOUNT", 170, yPos + 7);
+
+    yPos += 15;
+
+    // Loop through Transactions
+    transactions.forEach((tx, index) => {
+        // Page break check
+        if (yPos > 270) {
+            doc.addPage();
+            yPos = 20;
+        }
+
+        const dateStr = new Date(tx.date || tx.created_at).toLocaleDateString();
+        const amountStr = `Rs. ${Number(tx.amount).toLocaleString()}`;
+        const category = tx.category ? tx.category.toUpperCase() : "-";
+
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 0, 0);
+        doc.text(dateStr, 20, yPos);
+        doc.text(tx.description, 60, yPos);
+        doc.text(category, 130, yPos);
+
+        // Color the Amount
+        if (tx.type === 'income') {
+            doc.setTextColor(16, 185, 129); // Green
+            doc.text(`+ ${amountStr}`, 170, yPos);
+        } else {
+            doc.setTextColor(239, 68, 68); // Red
+            doc.text(`- ${amountStr}`, 170, yPos);
+        }
+
+        // Draw light underline
+        doc.setDrawColor(230, 230, 230);
+        doc.line(15, yPos + 2, 195, yPos + 2);
+        
+        yPos += 10;
     });
-    doc.save("Report.pdf");
+
+    doc.save("FiscalMind_Professional_Report.pdf");
 }
