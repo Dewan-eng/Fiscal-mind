@@ -120,21 +120,40 @@
 
         <div id="tab-budget" class="tab-content hidden">
             <div class="dashboard-grid">
+                
                 <div class="card budget-card" id="bucket-food">
-                    <div class="budget-header"><span>🍔 Food & Dining</span><span class="budget-limit">Limit: ₹5,000</span></div>
+                    <div class="budget-header">
+                        <span>🍔 Food & Dining</span>
+                        <span class="budget-limit" onclick="editBudget('food')">
+                            Limit: <span id="limit-food">₹5,000</span> <span class="edit-icon">✏️</span>
+                        </span>
+                    </div>
                     <div class="progress-container"><div class="progress-bar" id="bar-food" style="width: 0%"></div></div>
                     <p class="budget-status" id="status-food">₹0 spent</p>
                 </div>
+
                 <div class="card budget-card" id="bucket-transport">
-                    <div class="budget-header"><span>🚕 Transport</span><span class="budget-limit">Limit: ₹3,000</span></div>
+                    <div class="budget-header">
+                        <span>🚕 Transport</span>
+                        <span class="budget-limit" onclick="editBudget('transport')">
+                            Limit: <span id="limit-transport">₹3,000</span> <span class="edit-icon">✏️</span>
+                        </span>
+                    </div>
                     <div class="progress-container"><div class="progress-bar" id="bar-transport" style="width: 0%"></div></div>
                     <p class="budget-status" id="status-transport">₹0 spent</p>
                 </div>
+
                 <div class="card budget-card" id="bucket-fun">
-                    <div class="budget-header"><span>🎬 Fun & Subscriptions</span><span class="budget-limit">Limit: ₹2,000</span></div>
+                    <div class="budget-header">
+                        <span>🎬 Fun & Subscriptions</span>
+                        <span class="budget-limit" onclick="editBudget('fun')">
+                            Limit: <span id="limit-fun">₹2,000</span> <span class="edit-icon">✏️</span>
+                        </span>
+                    </div>
                     <div class="progress-container"><div class="progress-bar" id="bar-fun" style="width: 0%"></div></div>
                     <p class="budget-status" id="status-fun">₹0 spent</p>
                 </div>
+
             </div>
         </div>
 

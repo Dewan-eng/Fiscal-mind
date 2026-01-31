@@ -192,3 +192,22 @@ body {
     animation: shake 0.5s;
     border: 1px solid var(--danger);
 }
+/* Clickable Limit Button */
+.budget-limit {
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+
+.budget-limit:hover {
+    background-color: #e2e8f0;
+    border-color: #cbd5e1;
+    color: var(--primary);
+}
+
+/* Edit Icon */
+.edit-icon {
+    font-size: 0.8em;
+    margin-left: 5px;
+    opacity: 0.6;
+}

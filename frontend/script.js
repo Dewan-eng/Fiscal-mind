@@ -198,29 +198,56 @@ window.renderHistory = function() {
     document.getElementById('historyStats').innerText = `Total Expenses: ₹${total.toLocaleString('en-IN')}`;
 }
 
+// 1. EDIT BUDGET FUNCTION (New)
+window.editBudget = function(category) {
+    // Get current limit or default
+    const currentLimit = localStorage.getItem(`budget_limit_${category}`) || 
+                         (category === 'food' ? 5000 : category === 'transport' ? 3000 : 2000);
+    
+    // Ask user for new limit
+    const newLimit = prompt(`Set new limit for ${category.toUpperCase()}:`, currentLimit);
+    
+    // If user entered a valid number
+    if (newLimit && !isNaN(newLimit) && Number(newLimit) > 0) {
+        localStorage.setItem(`budget_limit_${category}`, newLimit); // Save to browser memory
+        updateBudgets(); // Refresh UI instantly
+    }
+}
+
+// 2. UPDATED BUDGETS (Reads from Memory)
 window.updateBudgets = function() {
     const budgets = [
-        { id: 'food', limit: 5000 },
-        { id: 'transport', limit: 3000 },
-        { id: 'fun', limit: 2000 }
+        { 
+            id: 'food', 
+            limit: Number(localStorage.getItem('budget_limit_food')) || 5000 
+        },
+        { 
+            id: 'transport', 
+            limit: Number(localStorage.getItem('budget_limit_transport')) || 3000 
+        },
+        { 
+            id: 'fun', 
+            limit: Number(localStorage.getItem('budget_limit_fun')) || 2000 
+        }
     ];
 
     budgets.forEach(bucket => {
-        // New Logic: Check if the category matches the bucket ID
         const spent = transactions
             .filter(t => t.type === 'expense')
-            .filter(t => t.category === bucket.id) // Precision matching!
+            .filter(t => t.category === bucket.id) // Precision matching
             .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const bar = document.getElementById(`bar-${bucket.id}`);
         const status = document.getElementById(`status-${bucket.id}`);
         const card = document.getElementById(`bucket-${bucket.id}`);
+        const limitText = document.getElementById(`limit-${bucket.id}`); // New
         
         if(!bar) return;
 
         const pct = Math.min((spent / bucket.limit) * 100, 100);
         bar.style.width = `${pct}%`;
         status.innerText = `₹${spent.toLocaleString()} / ₹${bucket.limit.toLocaleString()}`;
+        if(limitText) limitText.innerText = `₹${bucket.limit.toLocaleString()}`; // Update displayed limit
         
         card.classList.remove('shake-alert');
         bar.style.backgroundColor = pct < 50 ? '#10b981' : pct < 90 ? '#facc15' : '#ef4444';
