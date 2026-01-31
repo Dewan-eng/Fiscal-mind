@@ -110,3 +110,85 @@ body {
 @media (max-width: 768px) {
     .dashboard-grid { grid-template-columns: 1fr; }
 }
+/* --- TABS --- */
+.tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--secondary);
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.tab-btn:hover { background-color: #f1f5f9; color: var(--primary); }
+
+.tab-btn.active {
+    background-color: #e0e7ff;
+    color: var(--primary);
+}
+
+/* --- BUDGET BUCKETS --- */
+.budget-card {
+    transition: transform 0.2s;
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.budget-limit {
+    font-size: 0.85rem;
+    color: var(--secondary);
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 12px;
+    background-color: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--success); /* Starts Green */
+    width: 0%;
+    transition: width 0.5s ease, background-color 0.3s;
+}
+
+.budget-status {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--secondary);
+}
+
+/* --- GAMIFICATION: SHAKE ANIMATION --- */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.shake-alert {
+    animation: shake 0.5s;
+    border: 1px solid var(--danger);
+}

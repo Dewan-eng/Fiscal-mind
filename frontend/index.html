@@ -35,55 +35,116 @@
     </div>
 
     <div id="dashboard-view" class="hidden">
+        
         <div class="nav-header">
-            <div class="logo-text">FiscalMind</div>
+            <div class="logo-text">FiscalMind <span style="font-size:0.8rem; color:var(--secondary);">v2.0</span></div>
             <div>
-                <button id="downloadBtn" class="btn" style="background: white; border: 1px solid #e2e8f0; margin-right: 10px;">Download PDF</button>
-                <button id="logoutBtn" class="btn" style="color: var(--danger);">Logout</button>
+                <button onclick="logout()" class="btn" style="color: var(--danger);">Logout</button>
             </div>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="main-content">
-                <div class="card">
-                    <h3>New Entry</h3>
-                    <form id="addForm" class="add-tx-form">
-                        <input type="text" id="descInput" placeholder="Description (e.g. Server Cost)" required>
-                        <input type="number" id="amountInput" placeholder="Amount (₹)" required>
-                        <select id="typeInput">
-                            <option value="expense">Expense (-)</option>
-                            <option value="income">Income (+)</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Add</button>
-                    </form>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('history')">Time Travel</button>
+            <button class="tab-btn" onclick="switchTab('budget')">Budget Buckets</button>
+        </div>
+
+        <div id="tab-dashboard" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="main-content">
+                    <div class="card">
+                        <h3>New Entry</h3>
+                        <form id="addForm" class="add-tx-form">
+                            <input type="text" id="descInput" placeholder="Description (e.g. Coffee)" required>
+                            <input type="number" id="amountInput" placeholder="Amount (₹)" required>
+                            <select id="typeInput">
+                                <option value="expense">Expense (-)</option>
+                                <option value="income">Income (+)</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3>Recent Transactions</h3>
+                        <ul id="txList" class="tx-list"></ul>
+                    </div>
                 </div>
-
-                <div class="card">
-                    <h3>Recent Transactions</h3>
-                    <ul id="txList" class="tx-list"></ul>
-                </div>
-            </div>
-
-            <div class="sidebar">
-                <div class="card ai-box">
-    <div class="ai-glow"></div>
-    
-    <div class="ai-header">
-        <span>✨</span> 
-        <span>FiscalMind AI Consultant</span>
-    </div>
-
-    <p id="aiText" class="ai-msg">Initializing financial analysis...</p>
-</div>
-
-                <div class="card">
-                    <h3>Expense Breakdown</h3>
-                    <div style="position: relative; height: 250px; width: 100%;">
-                        <canvas id="myChart"></canvas>
+                <div class="sidebar">
+                    <div class="card ai-box">
+                        <div class="ai-glow"></div>
+                        <div class="ai-header"><span>✨</span> <span>FiscalMind AI</span></div>
+                        <p id="aiText" class="ai-msg">Analyzing...</p>
+                    </div>
+                    <div class="card">
+                        <h3>Expense Breakdown</h3>
+                        <div style="position: relative; height: 250px; width: 100%;">
+                            <canvas id="myChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="tab-history" class="tab-content hidden">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3>⏳ Time Travel</h3>
+                    <div>
+                        <select id="historyMonth" class="login-input" style="width:auto; display:inline-block; padding:8px;">
+                            <option value="all">All Time</option>
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            </select>
+                        <select id="historyYear" class="login-input" style="width:auto; display:inline-block; padding:8px;">
+                            <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                        </select>
+                        <button onclick="renderHistory()" class="btn btn-primary" style="padding: 8px 16px;">Go</button>
+                    </div>
+                </div>
+                <ul id="historyList" class="tx-list"></ul>
+                <div id="historyStats" style="margin-top:20px; font-weight:bold; color:var(--secondary);"></div>
+            </div>
+        </div>
+
+        <div id="tab-budget" class="tab-content hidden">
+            <div class="dashboard-grid">
+                <div class="card budget-card" id="bucket-food">
+                    <div class="budget-header">
+                        <span>🍔 Food & Dining</span>
+                        <span class="budget-limit">Limit: ₹5,000</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-food" style="width: 0%"></div>
+                    </div>
+                    <p class="budget-status" id="status-food">₹0 spent</p>
+                </div>
+
+                <div class="card budget-card" id="bucket-transport">
+                    <div class="budget-header">
+                        <span>🚕 Transport (Uber/Fuel)</span>
+                        <span class="budget-limit">Limit: ₹3,000</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-transport" style="width: 0%"></div>
+                    </div>
+                    <p class="budget-status" id="status-transport">₹0 spent</p>
+                </div>
+
+                <div class="card budget-card" id="bucket-fun">
+                    <div class="budget-header">
+                        <span>🎬 Fun & Subscriptions</span>
+                        <span class="budget-limit">Limit: ₹2,000</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-fun" style="width: 0%"></div>
+                    </div>
+                    <p class="budget-status" id="status-fun">₹0 spent</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="script.js"></script>
