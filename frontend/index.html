@@ -158,7 +158,19 @@
         </div>
 
     </div>
-
+<div id="editModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Update Budget Limit</h3>
+            <p id="modal-category-text" style="color:var(--secondary); margin-bottom:15px;">Set limit for Food</p>
+            
+            <input type="number" id="newLimitInput" class="login-input" placeholder="Enter amount (₹)" />
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="closeEditModal()" class="btn" style="background:#e2e8f0; color:#333; flex:1;">Cancel</button>
+                <button onclick="saveLimit()" class="btn btn-primary" style="flex:1;">Save Limit</button>
+            </div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

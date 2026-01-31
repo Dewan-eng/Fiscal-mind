@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addTxForm = document.getElementById('addForm');
     if(addTxForm) addTxForm.addEventListener('submit', handleAddTransaction);
+
+    // Close Modal on Outside Click
+    const modal = document.getElementById('editModal');
+    if(modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target.id === 'editModal') closeEditModal();
+        });
+    }
 });
 
 // --- AUTH LOGIC ---
@@ -198,23 +206,48 @@ window.renderHistory = function() {
     document.getElementById('historyStats').innerText = `Total Expenses: ₹${total.toLocaleString('en-IN')}`;
 }
 
-// 1. EDIT BUDGET FUNCTION (New)
+// --- NEW MODAL LOGIC (Replaces prompt) ---
+let currentEditingCategory = null;
+
+// 1. Open the Modal
 window.editBudget = function(category) {
-    // Get current limit or default
-    const currentLimit = localStorage.getItem(`budget_limit_${category}`) || 
-                         (category === 'food' ? 5000 : category === 'transport' ? 3000 : 2000);
+    currentEditingCategory = category;
     
-    // Ask user for new limit
-    const newLimit = prompt(`Set new limit for ${category.toUpperCase()}:`, currentLimit);
+    // Update text
+    document.getElementById('modal-category-text').innerText = `Set new limit for ${category.toUpperCase()}`;
+    // Clear input
+    document.getElementById('newLimitInput').value = '';
     
-    // If user entered a valid number
-    if (newLimit && !isNaN(newLimit) && Number(newLimit) > 0) {
-        localStorage.setItem(`budget_limit_${category}`, newLimit); // Save to browser memory
-        updateBudgets(); // Refresh UI instantly
+    // Show modal
+    document.getElementById('editModal').classList.remove('hidden');
+    document.getElementById('newLimitInput').focus();
+}
+
+// 2. Save the New Limit (Called by "Save" button)
+window.saveLimit = function() {
+    const amount = document.getElementById('newLimitInput').value;
+    
+    if (amount && !isNaN(amount) && Number(amount) > 0) {
+        // Save to browser memory
+        localStorage.setItem(`budget_limit_${currentEditingCategory}`, amount);
+        
+        // Refresh UI
+        updateBudgets();
+        
+        // Close Modal
+        closeEditModal();
+    } else {
+        alert("Please enter a valid amount.");
     }
 }
 
-// 2. UPDATED BUDGETS (Reads from Memory)
+// 3. Close Modal
+window.closeEditModal = function() {
+    document.getElementById('editModal').classList.add('hidden');
+    currentEditingCategory = null;
+}
+
+// --- BUDGET UPDATE LOGIC ---
 window.updateBudgets = function() {
     const budgets = [
         { 
@@ -234,13 +267,13 @@ window.updateBudgets = function() {
     budgets.forEach(bucket => {
         const spent = transactions
             .filter(t => t.type === 'expense')
-            .filter(t => t.category === bucket.id) // Precision matching
+            .filter(t => t.category === bucket.id) 
             .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const bar = document.getElementById(`bar-${bucket.id}`);
         const status = document.getElementById(`status-${bucket.id}`);
         const card = document.getElementById(`bucket-${bucket.id}`);
-        const limitText = document.getElementById(`limit-${bucket.id}`); // New
+        const limitText = document.getElementById(`limit-${bucket.id}`); 
         
         if(!bar) return;
 
