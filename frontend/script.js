@@ -117,11 +117,14 @@ async function handleAddTransaction(e) {
     const desc = document.getElementById('descInput').value;
     const amount = Number(document.getElementById('amountInput').value);
     const type = document.getElementById('typeInput').value;
+    const category = document.getElementById('categoryInput').value; // Get Category
+
     try {
         const res = await fetch(`${API_URL}/transactions`, {
             method: 'POST',
             headers: getAuthHeader(),
-            body: JSON.stringify({ description: desc, amount, type })
+            // Send category in the body
+            body: JSON.stringify({ description: desc, amount, type, category })
         });
         const savedTx = await res.json();
         transactions.unshift(savedTx);
@@ -197,21 +200,23 @@ window.renderHistory = function() {
 
 window.updateBudgets = function() {
     const budgets = [
-        { id: 'food', keywords: ['food', 'burger', 'coffee', 'pizza', 'dining'], limit: 5000 },
-        { id: 'transport', keywords: ['uber', 'fuel', 'taxi', 'bus', 'train'], limit: 3000 },
-        { id: 'fun', keywords: ['netflix', 'movie', 'game', 'spotify', 'party'], limit: 2000 }
+        { id: 'food', limit: 5000 },
+        { id: 'transport', limit: 3000 },
+        { id: 'fun', limit: 2000 }
     ];
 
     budgets.forEach(bucket => {
+        // New Logic: Check if the category matches the bucket ID
         const spent = transactions
-            .filter(t => t.type === 'expense' && bucket.keywords.some(k => t.description.toLowerCase().includes(k)))
+            .filter(t => t.type === 'expense')
+            .filter(t => t.category === bucket.id) // Precision matching!
             .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const bar = document.getElementById(`bar-${bucket.id}`);
         const status = document.getElementById(`status-${bucket.id}`);
         const card = document.getElementById(`bucket-${bucket.id}`);
         
-        if(!bar) return; // Safety check
+        if(!bar) return;
 
         const pct = Math.min((spent / bucket.limit) * 100, 100);
         bar.style.width = `${pct}%`;

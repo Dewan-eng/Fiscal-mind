@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FiscalMind v2.0</title>
+    <title>FiscalMind</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -56,14 +56,23 @@
                     <div class="card">
                         <h3>New Entry</h3>
                         <form id="addForm" class="add-tx-form">
-                            <input type="text" id="descInput" placeholder="Description (e.g. Coffee)" required>
-                            <input type="number" id="amountInput" placeholder="Amount (₹)" required>
-                            <select id="typeInput">
-                                <option value="expense">Expense (-)</option>
-                                <option value="income">Income (+)</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary">Add</button>
-                        </form>
+    <input type="text" id="descInput" placeholder="Description" required>
+    <input type="number" id="amountInput" placeholder="Amount (₹)" required>
+    
+    <select id="categoryInput" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" required>
+        <option value="" disabled selected>Category</option>
+        <option value="food">🍔 Food</option>
+        <option value="transport">🚕 Transport</option>
+        <option value="fun">🎬 Fun</option>
+        <option value="other">📦 Other</option>
+    </select>
+
+    <select id="typeInput">
+        <option value="expense">Expense (-)</option>
+        <option value="income">Income (+)</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Add</button>
+</form>
                     </div>
                     <div class="card">
                         <h3>Recent Transactions</h3>
