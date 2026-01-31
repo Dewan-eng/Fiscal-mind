@@ -11,24 +11,57 @@
 </head>
 <body>
 
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="floating-text">FiscalMind</div>
+        <div class="floating-text delay-1">Wealth</div>
+        <div class="floating-text delay-2">Finance</div>
+        <div class="floating-text delay-3">Growth</div>
+        <div class="floating-text delay-4">Future</div>
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
     <div id="login-view">
         <div class="login-card">
-            <h1 class="logo-text" style="margin-bottom: 10px;">FiscalMind</h1>
-            <p style="color: var(--secondary); margin-bottom: 30px;">Secure Financial Workspace</p>
+            <div class="logo-container">
+                <div class="logo-icon">₹</div>
+                <h1 class="logo-text">FiscalMind</h1>
+            </div>
+            <p class="subtitle">Secure Financial Workspace</p>
             
             <form id="loginForm">
-                <input type="email" id="loginEmail" class="login-input" placeholder="Email" required>
-                <input type="password" id="loginPass" class="login-input" placeholder="Password" required>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+                <div class="input-group">
+                    <input type="email" id="loginEmail" class="login-input" placeholder="Email" required>
+                    <span class="input-border"></span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="loginPass" class="login-input" placeholder="Password" required>
+                    <span class="input-border"></span>
+                </div>
+                <button type="submit" class="btn btn-primary glow-btn">
+                    <span>Sign In</span>
+                    <div class="btn-glow"></div>
+                </button>
             </form>
 
             <form id="registerForm" class="hidden">
-                <input type="email" id="regEmail" class="login-input" placeholder="New Email" required>
-                <input type="password" id="regPass" class="login-input" placeholder="New Password" required>
-                <button type="submit" class="btn btn-primary" style="width: 100%; background-color: var(--success);">Create Account</button>
+                <div class="input-group">
+                    <input type="email" id="regEmail" class="login-input" placeholder="New Email" required>
+                    <span class="input-border"></span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="regPass" class="login-input" placeholder="New Password" required>
+                    <span class="input-border"></span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-register glow-btn">
+                    <span>Create Account</span>
+                    <div class="btn-glow"></div>
+                </button>
             </form>
 
-            <p style="margin-top: 20px; font-size: 0.9rem; cursor: pointer; color: var(--primary);" onclick="toggleAuth()">
+            <p class="auth-toggle" onclick="toggleAuth()">
                 <span id="authToggleText">Need an account? Register</span>
             </p>
         </div>
@@ -37,57 +70,91 @@
     <div id="dashboard-view" class="hidden">
         
         <div class="nav-header">
-            <div class="logo-text">FiscalMind <span style="font-size:0.8rem; color:var(--secondary);">v2.0</span></div>
-            <div>
-                <button onclick="downloadPDF()" class="btn" style="background: white; border: 1px solid #e2e8f0; margin-right: 10px;">Download PDF</button>
-                <button onclick="logout()" class="btn" style="color: var(--danger);">Logout</button>
+            <div class="logo-container-nav">
+                <div class="logo-icon-small">₹</div>
+                <div class="logo-text">FiscalMind <span class="version-tag">v2.0</span></div>
+            </div>
+            <div class="nav-actions">
+                <button onclick="downloadPDF()" class="btn btn-secondary glow-btn">
+                    <span>📄 Download PDF</span>
+                    <div class="btn-glow"></div>
+                </button>
+                <button onclick="logout()" class="btn btn-danger glow-btn">
+                    <span>🚪 Logout</span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('history')">Time Travel</button>
-            <button class="tab-btn" onclick="switchTab('budget')">Budget Buckets</button>
+            <button class="tab-btn active glow-btn" onclick="switchTab('dashboard')">
+                <span>📊 Dashboard</span>
+                <div class="btn-glow"></div>
+            </button>
+            <button class="tab-btn glow-btn" onclick="switchTab('history')">
+                <span>⏳ Time Travel</span>
+                <div class="btn-glow"></div>
+            </button>
+            <button class="tab-btn glow-btn" onclick="switchTab('budget')">
+                <span>💰 Budget Buckets</span>
+                <div class="btn-glow"></div>
+            </button>
         </div>
 
         <div id="tab-dashboard" class="tab-content">
             <div class="dashboard-grid">
                 <div class="main-content">
                     <div class="card">
-                        <h3>New Entry</h3>
+                        <h3><span class="card-icon">➕</span> New Entry</h3>
                         <form id="addForm" class="add-tx-form">
-    <input type="text" id="descInput" placeholder="Description" required>
-    <input type="number" id="amountInput" placeholder="Amount (₹)" required>
-    
-    <select id="categoryInput" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" required>
-        <option value="" disabled selected>Category</option>
-        <option value="food">🍔 Food</option>
-        <option value="transport">🚕 Transport</option>
-        <option value="fun">🎬 Fun</option>
-        <option value="other">📦 Other</option>
-    </select>
+                            <div class="input-group">
+                                <input type="text" id="descInput" placeholder="Description" required>
+                                <span class="input-border"></span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" id="amountInput" placeholder="Amount (₹)" required>
+                                <span class="input-border"></span>
+                            </div>
+                            
+                            <select id="categoryInput" class="modern-select" required>
+                                <option value="" disabled selected>Category</option>
+                                <option value="food">🍔 Food</option>
+                                <option value="transport">🚕 Transport</option>
+                                <option value="fun">🎬 Fun</option>
+                                <option value="other">📦 Other</option>
+                            </select>
 
-    <select id="typeInput">
-        <option value="expense">Expense (-)</option>
-        <option value="income">Income (+)</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Add</button>
-</form>
+                            <select id="typeInput" class="modern-select">
+                                <option value="expense">Expense (-)</option>
+                                <option value="income">Income (+)</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary glow-btn full-width">
+                                <span>Add Transaction</span>
+                                <div class="btn-glow"></div>
+                            </button>
+                        </form>
                     </div>
                     <div class="card">
-                        <h3>Recent Transactions</h3>
+                        <h3><span class="card-icon">📜</span> Recent Transactions</h3>
                         <ul id="txList" class="tx-list"></ul>
                     </div>
                 </div>
                 <div class="sidebar">
                     <div class="card ai-box">
-                        <div class="ai-glow"></div>
-                        <div class="ai-header"><span>✨</span> <span>FiscalMind AI</span></div>
-                        <p id="aiText" class="ai-msg">Analyzing...</p>
+                        <div class="ai-particles">
+                            <div class="particle"></div>
+                            <div class="particle"></div>
+                            <div class="particle"></div>
+                        </div>
+                        <div class="ai-header">
+                            <span class="ai-icon">✨</span> 
+                            <span>FiscalMind AI</span>
+                        </div>
+                        <p id="aiText" class="ai-msg">Analyzing your financial patterns...</p>
                     </div>
                     <div class="card">
-                        <h3>Expense Breakdown</h3>
-                        <div style="position: relative; height: 250px; width: 100%;">
+                        <h3><span class="card-icon">📈</span> Expense Breakdown</h3>
+                        <div class="chart-container">
                             <canvas id="myChart"></canvas>
                         </div>
                     </div>
@@ -97,60 +164,78 @@
 
         <div id="tab-history" class="tab-content hidden">
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3>⏳ Time Travel</h3>
-                    <div>
-                        <select id="historyMonth" class="login-input" style="width:auto; display:inline-block; padding:8px;">
+                <div class="history-header">
+                    <h3><span class="card-icon">⏳</span> Time Travel</h3>
+                    <div class="history-controls">
+                        <select id="historyMonth" class="modern-select compact">
                             <option value="all">All Time</option>
                             <option value="0">January</option>
                             <option value="1">February</option>
                             <option value="2">March</option>
                         </select>
-                        <select id="historyYear" class="login-input" style="width:auto; display:inline-block; padding:8px;">
+                        <select id="historyYear" class="modern-select compact">
                             <option value="2025">2025</option>
                             <option value="2026" selected>2026</option>
                         </select>
-                        <button onclick="renderHistory()" class="btn btn-primary" style="padding: 8px 16px;">Go</button>
+                        <button onclick="renderHistory()" class="btn btn-primary glow-btn compact-btn">
+                            <span>Go</span>
+                            <div class="btn-glow"></div>
+                        </button>
                     </div>
                 </div>
                 <ul id="historyList" class="tx-list"></ul>
-                <div id="historyStats" style="margin-top:20px; font-weight:bold; color:var(--secondary);"></div>
+                <div id="historyStats" class="history-stats"></div>
             </div>
         </div>
 
         <div id="tab-budget" class="tab-content hidden">
-            <div class="dashboard-grid">
+            <div class="dashboard-grid budget-grid">
                 
                 <div class="card budget-card" id="bucket-food">
                     <div class="budget-header">
-                        <span>🍔 Food & Dining</span>
+                        <span class="budget-title">🍔 Food & Dining</span>
                         <span class="budget-limit" onclick="editBudget('food')">
-                            Limit: <span id="limit-food">₹5,000</span> <span class="edit-icon">✏️</span>
+                            <span class="limit-label">Limit:</span> 
+                            <span id="limit-food" class="limit-amount">₹5,000</span> 
+                            <span class="edit-icon">✏️</span>
                         </span>
                     </div>
-                    <div class="progress-container"><div class="progress-bar" id="bar-food" style="width: 0%"></div></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-food"></div>
+                        <div class="progress-shine"></div>
+                    </div>
                     <p class="budget-status" id="status-food">₹0 spent</p>
                 </div>
 
                 <div class="card budget-card" id="bucket-transport">
                     <div class="budget-header">
-                        <span>🚕 Transport</span>
+                        <span class="budget-title">🚕 Transport</span>
                         <span class="budget-limit" onclick="editBudget('transport')">
-                            Limit: <span id="limit-transport">₹3,000</span> <span class="edit-icon">✏️</span>
+                            <span class="limit-label">Limit:</span> 
+                            <span id="limit-transport" class="limit-amount">₹3,000</span> 
+                            <span class="edit-icon">✏️</span>
                         </span>
                     </div>
-                    <div class="progress-container"><div class="progress-bar" id="bar-transport" style="width: 0%"></div></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-transport"></div>
+                        <div class="progress-shine"></div>
+                    </div>
                     <p class="budget-status" id="status-transport">₹0 spent</p>
                 </div>
 
                 <div class="card budget-card" id="bucket-fun">
                     <div class="budget-header">
-                        <span>🎬 Fun & Subscriptions</span>
+                        <span class="budget-title">🎬 Fun & Subscriptions</span>
                         <span class="budget-limit" onclick="editBudget('fun')">
-                            Limit: <span id="limit-fun">₹2,000</span> <span class="edit-icon">✏️</span>
+                            <span class="limit-label">Limit:</span> 
+                            <span id="limit-fun" class="limit-amount">₹2,000</span> 
+                            <span class="edit-icon">✏️</span>
                         </span>
                     </div>
-                    <div class="progress-container"><div class="progress-bar" id="bar-fun" style="width: 0%"></div></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-fun"></div>
+                        <div class="progress-shine"></div>
+                    </div>
                     <p class="budget-status" id="status-fun">₹0 spent</p>
                 </div>
 
@@ -158,19 +243,33 @@
         </div>
 
     </div>
-<div id="editModal" class="modal hidden">
+
+    <div id="editModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeEditModal()"></div>
         <div class="modal-content">
-            <h3>Update Budget Limit</h3>
-            <p id="modal-category-text" style="color:var(--secondary); margin-bottom:15px;">Set limit for Food</p>
+            <div class="modal-header">
+                <h3>💎 Update Budget Limit</h3>
+            </div>
+            <p id="modal-category-text" class="modal-subtitle">Set limit for Food</p>
             
-            <input type="number" id="newLimitInput" class="login-input" placeholder="Enter amount (₹)" />
+            <div class="input-group">
+                <input type="number" id="newLimitInput" class="login-input" placeholder="Enter amount (₹)" />
+                <span class="input-border"></span>
+            </div>
             
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="closeEditModal()" class="btn" style="background:#e2e8f0; color:#333; flex:1;">Cancel</button>
-                <button onclick="saveLimit()" class="btn btn-primary" style="flex:1;">Save Limit</button>
+            <div class="modal-actions">
+                <button onclick="closeEditModal()" class="btn btn-secondary glow-btn">
+                    <span>Cancel</span>
+                    <div class="btn-glow"></div>
+                </button>
+                <button onclick="saveLimit()" class="btn btn-primary glow-btn">
+                    <span>Save Limit</span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
