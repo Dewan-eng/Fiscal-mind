@@ -1,4 +1,4 @@
-const API_URL = 'https://fiscal-mind.onrender.com';
+const API_URL = 'https://fiscal-mind.onrender.com/api';
 let transactions = [];
 let chartInstance = null;
 
