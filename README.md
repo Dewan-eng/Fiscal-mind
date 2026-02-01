@@ -60,11 +60,3 @@
 
 ---
 
-## ⚙️ Installation & Local Setup
-
-Want to run this on your machine?
-
-**1. Clone the Repository**
-```bash
-git clone [https://github.com/Dewan-eng/Fiscal-mind.git](https://github.com/Dewan-eng/Fiscal-mind.git)
-cd Fiscal-mind
